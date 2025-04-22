@@ -1,0 +1,551 @@
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Retro Pixel Art Platformer - Realistic Platforms
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;display=swap" rel="stylesheet"/>
+  <style>
+   body {
+      font-family: 'Press Start 2P', cursive;
+      background-color: #1a1a1a;
+      user-select: none;
+      overflow-x: hidden;
+    }
+    .pixelated {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .sky-enhanced {
+      filter: drop-shadow(0 0 2px #facc15);
+      transition: filter 0.3s ease-in-out;
+    }
+    .sky-enhanced:hover {
+      filter: drop-shadow(0 0 6px #fbbf24);
+    }
+    #game-viewport {
+      touch-action: none;
+    }
+    /* Realistic pixel art platform styling */
+    .platform {
+      border: 2px solid #4a7c2b;
+      box-shadow:
+        inset 0 4px 0 #6aa84f,
+        inset 0 -4px 0 #3a5c1b,
+        0 4px 6px rgba(0,0,0,0.6);
+      border-radius: 4px;
+      background: linear-gradient(180deg, #6aa84f 0%, #4a7c2b 100%);
+      filter: drop-shadow(0 2px 1px rgba(0,0,0,0.7));
+      transition: filter 0.3s ease;
+    }
+    .platform:hover {
+      filter: drop-shadow(0 4px 3px rgba(0,0,0,0.9));
+    }
+  </style>
+ </head>
+ <body class="min-h-screen flex flex-col items-center justify-start p-4 text-white">
+  <header class="w-full max-w-5xl flex items-center justify-between mb-8 px-4 py-2 border-b border-yellow-400 select-none">
+   <h1 class="text-yellow-400 text-2xl sm:text-3xl">
+    PIXEL QUEST
+   </h1>
+   <nav class="space-x-4 text-yellow-300 text-xs sm:text-sm">
+    <a class="hover:text-yellow-400 transition" href="#">
+     Home
+    </a>
+    <a class="hover:text-yellow-400 transition" href="#">
+     Levels
+    </a>
+    <a class="hover:text-yellow-400 transition" href="#">
+     Inventory
+    </a>
+    <a class="hover:text-yellow-400 transition" href="#">
+     Shop
+    </a>
+    <a class="hover:text-yellow-400 transition" href="#">
+     About
+    </a>
+   </nav>
+  </header>
+  <main class="w-full max-w-5xl flex flex-col items-center space-y-10">
+   <!-- Game viewport -->
+   <section aria-label="Game viewport showing pixel art platformer scene" class="relative w-full max-w-4xl h-[360px] sm:h-[480px] bg-black border-4 border-yellow-400 rounded-md overflow-hidden shadow-lg select-none" id="game-viewport" tabindex="0">
+    <!-- Background sky with enhanced UI/UX -->
+    <img alt="Pixel art blue sky with white pixel clouds and a bright pixel sun, enhanced with subtle glowing effect" class="absolute top-0 left-0 w-full h-full object-cover pixelated sky-enhanced" draggable="false" height="480" src="https://storage.googleapis.com/a1aa/image/127b9f3b-d27f-41e5-a88d-31a0c7d63fec.jpg" width="640"/>
+    <!-- Ground platform -->
+    <img alt="Pixel art brown dirt ground platform with green grass on top" class="absolute bottom-0 left-0 w-full h-20 object-cover pixelated" draggable="false" height="80" src="https://storage.googleapis.com/a1aa/image/9c3b479e-41de-48f7-055d-e6ce51a3a1bf.jpg" width="640"/>
+    <!-- Platforms with realistic styling -->
+    <div class="absolute bottom-[120px] left-[80px] w-40 h-10 platform" style="will-change: transform;" data-x="80" data-y="120" data-width="160" data-height="40" role="presentation" aria-label="Realistic pixel art green grass platform floating in the air"></div>
+    <div class="absolute bottom-[200px] left-[280px] w-30 h-7.5 platform" style="will-change: transform;" data-x="280" data-y="200" data-width="120" data-height="30" role="presentation" aria-label="Realistic pixel art green grass platform floating in the air"></div>
+    <div class="absolute bottom-[160px] left-[480px] w-50 h-10 platform" style="will-change: transform;" data-x="480" data-y="160" data-width="200" data-height="40" role="presentation" aria-label="Realistic pixel art green grass platform floating in the air"></div>
+    <!-- Player character -->
+    <img alt="Pixel art red-clad retro platformer character with a sword" class="absolute bottom-20 left-20 w-8 h-12 pixelated" draggable="false" height="48" id="player" src="https://storage.googleapis.com/a1aa/image/1984fe76-a25a-4dfb-cba8-cff949023569.jpg" width="32" style="will-change: transform;"/>
+    <!-- Collectible items container -->
+    <div id="collectibles-container" class="absolute w-full h-full pointer-events-none"></div>
+   </section>
+   <!-- Inventory section -->
+   <section aria-label="Player inventory with collectible items" class="w-full max-w-4xl bg-gray-900 bg-opacity-80 rounded-md p-4 border-2 border-yellow-400 shadow-lg" id="inventory">
+    <h2 class="text-yellow-400 text-lg mb-4">
+     Inventory
+    </h2>
+    <ul class="grid grid-cols-5 gap-4" id="inventory-list">
+     <li class="flex flex-col items-center space-y-1 bg-gray-800 rounded-md p-2 border border-yellow-600">
+      <img alt="Pixel art shiny gold coin collectible" class="w-8 h-8 pixelated" draggable="false" height="32" src="https://storage.googleapis.com/a1aa/image/c3b02826-eddb-4315-bb64-7bca8856f11d.jpg" width="32"/>
+      <span class="text-yellow-300 text-xs">
+       Coins: <span id="coins-count">0</span>
+      </span>
+     </li>
+     <li class="flex flex-col items-center space-y-1 bg-gray-800 rounded-md p-2 border border-yellow-600">
+      <img alt="Pixel art bright cyan gem collectible" class="w-8 h-8 pixelated" draggable="false" height="32" src="https://storage.googleapis.com/a1aa/image/872df310-1135-4cdd-5a83-4b3f9c4a8225.jpg" width="32"/>
+      <span class="text-yellow-300 text-xs">
+       Gems: <span id="gems-count">0</span>
+      </span>
+     </li>
+     <li class="flex flex-col items-center space-y-1 bg-gray-800 rounded-md p-2 border border-yellow-600">
+      <img alt="Pixel art pink heart collectible" class="w-8 h-8 pixelated" draggable="false" height="32" src="https://storage.googleapis.com/a1aa/image/5148670d-1da9-4ef3-8a47-3f9a40084f68.jpg" width="32"/>
+      <span class="text-yellow-300 text-xs">
+       Hearts: <span id="hearts-count">0</span>
+      </span>
+     </li>
+     <li class="flex flex-col items-center space-y-1 bg-gray-800 rounded-md p-2 border border-yellow-600">
+      <img alt="Pixel art brown key collectible" class="w-8 h-8 pixelated" draggable="false" height="32" src="https://storage.googleapis.com/a1aa/image/0bd15c76-a7a8-48ec-43f1-a6e31811ae42.jpg" width="32"/>
+      <span class="text-yellow-300 text-xs">
+       Keys: <span id="keys-count">0</span>
+      </span>
+     </li>
+     <li class="flex flex-col items-center space-y-1 bg-gray-800 rounded-md p-2 border border-yellow-600">
+      <img alt="Pixel art green potion collectible" class="w-8 h-8 pixelated" draggable="false" height="32" src="https://storage.googleapis.com/a1aa/image/ffce76ff-bb3b-4e79-a2f3-19d5ec7e0f98.jpg" width="32"/>
+      <span class="text-yellow-300 text-xs">
+       Potions: <span id="potions-count">0</span>
+      </span>
+     </li>
+    </ul>
+   </section>
+   <!-- Shop section -->
+   <section aria-label="Shop with pixel art collectible items for sale" class="w-full max-w-4xl bg-gray-900 bg-opacity-80 rounded-md p-4 border-2 border-yellow-400 shadow-lg" id="shop">
+    <h2 class="text-yellow-400 text-lg mb-4">
+     Shop
+    </h2>
+    <ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+     <li class="flex flex-col items-center space-y-2 bg-gray-800 rounded-md p-3 border border-yellow-600 hover:bg-yellow-900 transition cursor-pointer">
+      <img alt="Pixel art shiny gold coin collectible" class="w-12 h-12 pixelated" draggable="false" height="48" src="https://storage.googleapis.com/a1aa/image/c3b02826-eddb-4315-bb64-7bca8856f11d.jpg" width="48"/>
+      <span class="text-yellow-300 text-xs">
+       50 Coins
+      </span>
+      <button class="bg-yellow-400 text-black text-xs px-3 py-1 rounded font-bold hover:bg-yellow-300 transition" type="button">
+       Buy
+      </button>
+     </li>
+     <li class="flex flex-col items-center space-y-2 bg-gray-800 rounded-md p-3 border border-yellow-600 hover:bg-yellow-900 transition cursor-pointer">
+      <img alt="Pixel art bright cyan gem collectible" class="w-12 h-12 pixelated" draggable="false" height="48" src="https://storage.googleapis.com/a1aa/image/872df310-1135-4cdd-5a83-4b3f9c4a8225.jpg" width="48"/>
+      <span class="text-yellow-300 text-xs">
+       20 Gems
+      </span>
+      <button class="bg-yellow-400 text-black text-xs px-3 py-1 rounded font-bold hover:bg-yellow-300 transition" type="button">
+       Buy
+      </button>
+     </li>
+     <li class="flex flex-col items-center space-y-2 bg-gray-800 rounded-md p-3 border border-yellow-600 hover:bg-yellow-900 transition cursor-pointer">
+      <img alt="Pixel art pink heart collectible" class="w-12 h-12 pixelated" draggable="false" height="48" src="https://storage.googleapis.com/a1aa/image/5148670d-1da9-4ef3-8a47-3f9a40084f68.jpg" width="48"/>
+      <span class="text-yellow-300 text-xs">
+       10 Hearts
+      </span>
+      <button class="bg-yellow-400 text-black text-xs px-3 py-1 rounded font-bold hover:bg-yellow-300 transition" type="button">
+       Buy
+      </button>
+     </li>
+     <li class="flex flex-col items-center space-y-2 bg-gray-800 rounded-md p-3 border border-yellow-600 hover:bg-yellow-900 transition cursor-pointer">
+      <img alt="Pixel art brown key collectible" class="w-12 h-12 pixelated" draggable="false" height="48" src="https://storage.googleapis.com/a1aa/image/0bd15c76-a7a8-48ec-43f1-a6e31811ae42.jpg" width="48"/>
+      <span class="text-yellow-300 text-xs">
+       5 Keys
+      </span>
+      <button class="bg-yellow-400 text-black text-xs px-3 py-1 rounded font-bold hover:bg-yellow-300 transition" type="button">
+       Buy
+      </button>
+     </li>
+     <li class="flex flex-col items-center space-y-2 bg-gray-800 rounded-md p-3 border border-yellow-600 hover:bg-yellow-900 transition cursor-pointer">
+      <img alt="Pixel art green potion collectible" class="w-12 h-12 pixelated" draggable="false" height="48" src="https://storage.googleapis.com/a1aa/image/ffce76ff-bb3b-4e79-a2f3-19d5ec7e0f98.jpg" width="48"/>
+      <span class="text-yellow-300 text-xs">
+       8 Potions
+      </span>
+      <button class="bg-yellow-400 text-black text-xs px-3 py-1 rounded font-bold hover:bg-yellow-300 transition" type="button">
+       Buy
+      </button>
+     </li>
+    </ul>
+   </section>
+  </main>
+  <footer class="w-full max-w-5xl mt-12 mb-6 text-yellow-400 text-center text-xs sm:text-sm select-none">
+   © 2024 Pixel Quest. All rights reserved.
+  </footer>
+  <script>
+   (() => {
+    const gameViewport = document.getElementById('game-viewport');
+    const player = document.getElementById('player');
+    const collectiblesContainer = document.getElementById('collectibles-container');
+
+    // Inventory counts
+    const inventory = {
+      coins: 0,
+      gems: 0,
+      hearts: 0,
+      keys: 0,
+      potions: 0,
+    };
+
+    // Update inventory UI
+    function updateInventoryUI() {
+      document.getElementById('coins-count').textContent = inventory.coins;
+      document.getElementById('gems-count').textContent = inventory.gems;
+      document.getElementById('hearts-count').textContent = inventory.hearts;
+      document.getElementById('keys-count').textContent = inventory.keys;
+      document.getElementById('potions-count').textContent = inventory.potions;
+    }
+
+    // Game constants
+    const gravity = 0.6;
+    const friction = 0.8;
+    const moveSpeed = 3;
+    const jumpPower = 11;
+
+    // Player state
+    const playerState = {
+      x: 20,
+      y: 0,
+      width: 32,
+      height: 48,
+      velocityX: 0,
+      velocityY: 0,
+      onGround: false,
+    };
+
+    // Platforms data (bottom from ground)
+    const platforms = [
+      { x: 0, y: 0, width: 640, height: 80 }, // ground platform (bottom 0)
+      { x: 80, y: 120, width: 160, height: 40 },
+      { x: 280, y: 200, width: 120, height: 30 },
+      { x: 480, y: 160, width: 200, height: 40 },
+    ];
+
+    // Collectible types with images and values
+    const collectibleTypes = {
+      coin: {
+        imgSrc: 'https://storage.googleapis.com/a1aa/image/c3b02826-eddb-4315-bb64-7bca8856f11d.jpg',
+        alt: 'Pixel art shiny gold coin collectible',
+        width: 16,
+        height: 16,
+        inventoryKey: 'coins',
+      },
+      gem: {
+        imgSrc: 'https://storage.googleapis.com/a1aa/image/872df310-1135-4cdd-5a83-4b3f9c4a8225.jpg',
+        alt: 'Pixel art bright cyan gem collectible',
+        width: 16,
+        height: 16,
+        inventoryKey: 'gems',
+      },
+      heart: {
+        imgSrc: 'https://storage.googleapis.com/a1aa/image/5148670d-1da9-4ef3-8a47-3f9a40084f68.jpg',
+        width: 16,
+        height: 16,
+        alt: 'Pixel art pink heart collectible',
+        inventoryKey: 'hearts',
+      },
+      key: {
+        imgSrc: 'https://storage.googleapis.com/a1aa/image/0bd15c76-a7a8-48ec-43f1-a6e31811ae42.jpg',
+        alt: 'Pixel art brown key collectible',
+        width: 16,
+        height: 16,
+        inventoryKey: 'keys',
+      },
+      potion: {
+        imgSrc: 'https://storage.googleapis.com/a1aa/image/ffce76ff-bb3b-4e79-a2f3-19d5ec7e0f98.jpg',
+        alt: 'Pixel art green potion collectible',
+        width: 16,
+        height: 16,
+        inventoryKey: 'potions',
+      },
+    };
+
+    // Collectibles array
+    const collectibles = [
+      { type: 'coin', x: 100, y: 140, collected: false },
+      { type: 'gem', x: 300, y: 210, collected: false },
+      { type: 'heart', x: 520, y: 170, collected: false },
+      { type: 'coin', x: 150, y: 140, collected: false },
+      { type: 'potion', x: 500, y: 180, collected: false },
+      { type: 'key', x: 350, y: 210, collected: false },
+      { type: 'coin', x: 200, y: 140, collected: false },
+      { type: 'gem', x: 480, y: 170, collected: false },
+      { type: 'heart', x: 600, y: 140, collected: false },
+      { type: 'potion', x: 420, y: 210, collected: false },
+    ];
+
+    // Create collectible DOM elements
+    function createCollectibleElement(collectible) {
+      const typeInfo = collectibleTypes[collectible.type];
+      const img = document.createElement('img');
+      img.src = typeInfo.imgSrc;
+      img.alt = typeInfo.alt;
+      img.className = 'absolute pixelated cursor-pointer';
+      img.style.width = typeInfo.width + 'px';
+      img.style.height = typeInfo.height + 'px';
+      img.style.left = collectible.x + 'px';
+      img.style.bottom = collectible.y + 'px';
+      img.draggable = false;
+      return img;
+    }
+
+    // Render collectibles
+    function renderCollectibles() {
+      collectiblesContainer.innerHTML = '';
+      collectibles.forEach((c, i) => {
+        if (!c.collected) {
+          const el = createCollectibleElement(c);
+          el.dataset.index = i;
+          collectiblesContainer.appendChild(el);
+        }
+      });
+    }
+
+    // Collision detection helper
+    function rectsIntersect(r1, r2) {
+      return !(
+        r2.x > r1.x + r1.width ||
+        r2.x + r2.width < r1.x ||
+        r2.y > r1.y + r1.height ||
+        r2.y + r2.height < r1.y
+      );
+    }
+
+    // Player rectangle for collision
+    function getPlayerRect() {
+      return {
+        x: playerState.x,
+        y: playerState.y,
+        width: playerState.width,
+        height: playerState.height,
+      };
+    }
+
+    // Platform rectangle for collision
+    function getPlatformRect(platform) {
+      return {
+        x: platform.x,
+        y: platform.y,
+        width: platform.width,
+        height: platform.height,
+      };
+    }
+
+    // Collectible rectangle for collision
+    function getCollectibleRect(collectible) {
+      const typeInfo = collectibleTypes[collectible.type];
+      return {
+        x: collectible.x,
+        y: collectible.y,
+        width: typeInfo.width,
+        height: typeInfo.height,
+      };
+    }
+
+    // Keyboard input state
+    const keys = {
+      left: false,
+      right: false,
+      up: false,
+    };
+
+    // Handle keyboard events
+    function keyDownHandler(e) {
+      if (e.repeat) return;
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        keys.left = true;
+      }
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        keys.right = true;
+      }
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') {
+        keys.up = true;
+      }
+    }
+    function keyUpHandler(e) {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        keys.left = false;
+      }
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        keys.right = false;
+      }
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') {
+        keys.up = false;
+      }
+    }
+
+    // Clamp function
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    // Game loop
+    function gameLoop() {
+      // Horizontal movement
+      if (keys.left) {
+        playerState.velocityX = -moveSpeed;
+      } else if (keys.right) {
+        playerState.velocityX = moveSpeed;
+      } else {
+        playerState.velocityX *= friction;
+        if (Math.abs(playerState.velocityX) < 0.1) playerState.velocityX = 0;
+      }
+
+      // Jumping
+      if (keys.up && playerState.onGround) {
+        playerState.velocityY = -jumpPower;
+        playerState.onGround = false;
+      }
+
+      // Apply gravity
+      playerState.velocityY += gravity;
+
+      // Update position
+      playerState.x += playerState.velocityX;
+      playerState.y += playerState.velocityY;
+
+      // Clamp horizontal position inside viewport
+      playerState.x = clamp(playerState.x, 0, 640 - playerState.width);
+
+      // Collision detection with platforms
+      playerState.onGround = false;
+      for (const platform of platforms) {
+        const platRect = getPlatformRect(platform);
+        const playerRect = getPlayerRect();
+
+        // Check horizontal overlap
+        const horizontalOverlap = playerRect.x + playerRect.width > platRect.x && playerRect.x < platRect.x + platRect.width;
+        // Check vertical collision (player falling onto platform)
+        if (horizontalOverlap) {
+          // Player bottom is below platform top and above platform bottom
+          const playerBottom = playerRect.y + playerRect.height;
+          const platformTop = platRect.y + platRect.height;
+          const platformBottom = platRect.y;
+
+          // Check if player is falling and will land on platform
+          if (playerBottom >= platformBottom && playerBottom <= platformTop && playerState.velocityY >= 0) {
+            // Snap player to platform top
+            playerState.y = platformTop - playerState.height;
+            playerState.velocityY = 0;
+            playerState.onGround = true;
+          }
+        }
+      }
+
+      // Clamp vertical position so player doesn't fall below ground
+      if (playerState.y + playerState.height > 80) {
+        playerState.y = 80 - playerState.height;
+        playerState.velocityY = 0;
+        playerState.onGround = true;
+      }
+
+      // Clamp vertical position so player doesn't go above viewport
+      if (playerState.y < 0) {
+        playerState.y = 0;
+        playerState.velocityY = 0;
+      }
+
+      // Update player position in DOM
+      player.style.transform = `translate(${playerState.x}px, -${playerState.y}px)`;
+
+      // Check collectible collisions
+      const playerRect = getPlayerRect();
+      collectibles.forEach((c) => {
+        if (!c.collected) {
+          const cRect = getCollectibleRect(c);
+          if (
+            playerRect.x < cRect.x + cRect.width &&
+            playerRect.x + playerRect.width > cRect.x &&
+            playerRect.y < cRect.y + cRect.height &&
+            playerRect.y + playerRect.height > cRect.y
+          ) {
+            // Collect item
+            c.collected = true;
+            inventory[collectibleTypes[c.type].inventoryKey]++;
+            updateInventoryUI();
+            renderCollectibles();
+          }
+        }
+      });
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Initialize collectibles rendering
+    renderCollectibles();
+
+    // Event listeners for keyboard
+    window.addEventListener('keydown', keyDownHandler);
+    window.addEventListener('keyup', keyUpHandler);
+
+    // Focus game viewport to capture keyboard input on page load
+    gameViewport.focus();
+
+    // Touch controls for mobile (simple left/right/jump buttons)
+    // Create controls container
+    const controlsContainer = document.createElement('div');
+    controlsContainer.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-6 z-50 select-none';
+    document.body.appendChild(controlsContainer);
+
+    // Create buttons
+    const btnLeft = document.createElement('button');
+    btnLeft.innerHTML = '<i class="fas fa-arrow-left"></i>';
+    btnLeft.className = 'bg-yellow-400 text-black p-3 rounded-lg shadow-lg active:scale-95 transition';
+    btnLeft.setAttribute('aria-label', 'Move Left');
+    controlsContainer.appendChild(btnLeft);
+
+    const btnJump = document.createElement('button');
+    btnJump.innerHTML = '<i class="fas fa-arrow-up"></i>';
+    btnJump.className = 'bg-yellow-400 text-black p-3 rounded-lg shadow-lg active:scale-95 transition';
+    btnJump.setAttribute('aria-label', 'Jump');
+    controlsContainer.appendChild(btnJump);
+
+    const btnRight = document.createElement('button');
+    btnRight.innerHTML = '<i class="fas fa-arrow-right"></i>';
+    btnRight.className = 'bg-yellow-400 text-black p-3 rounded-lg shadow-lg active:scale-95 transition';
+    btnRight.setAttribute('aria-label', 'Move Right');
+    controlsContainer.appendChild(btnRight);
+
+    // Touch event handlers
+    btnLeft.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      keys.left = true;
+    });
+    btnLeft.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      keys.left = false;
+    });
+    btnRight.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      keys.right = true;
+    });
+    btnRight.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      keys.right = false;
+    });
+    btnJump.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (playerState.onGround) {
+        keys.up = true;
+      }
+    });
+    btnJump.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      keys.up = false;
+    });
+
+    // Start game loop
+    requestAnimationFrame(gameLoop);
+   })();
+  </script>
+ </body>
+</html>
